@@ -364,20 +364,176 @@ namespace Map
             return stop / sbot;
         }
 
+        void estimateElevation()
+        {
+            for(int y = 0; y < height; y++)
+                for(int x = 0; x < width; x++)
+                {
+                    double lat = y2lat(y);
+                    double lon = x2lon(x);
+
+                    double elev = idw(lat, lon);
+                    double t = unit(elev, elev_min, elev_max);
+
+                    double rf, gf, bf;
+                    to_color(t, out rf, out gf, out bf);
+
+                    int r = (int)(rf * 255);
+                    int g = (int)(gf * 255);
+                    int b = (int)(bf * 255);
+
+                    r = Math.Min(Math.Max(r, 0), 255);
+                    g = Math.Min(Math.Max(g, 0), 255);
+                    b = Math.Min(Math.Max(b, 0), 255);
+
+                    bmp.SetPixel(x, y, Color.FromArgb(r, g, b));
+                }
+        }
+
         void drawLine(int idx, int p0, int p1, GraphicsPath path)
         {
-            float x0 = lon2x(obj[idx].lon[p0]);
-            float y0 = lat2y(obj[idx].lat[p0]);
+            float x0 = (float) lon2x(obj[idx].lon[p0]);
+            float y0 = (float) lat2y(obj[idx].lat[p0]);
 
-            float x1 = lon2x(obj[idx].lon[p1]);
-            float y1 = lat2y(obj[idx].lat[p1]);
+            float x1 = (float) lon2x(obj[idx].lon[p1]);
+            float y1 = (float) lat2y(obj[idx].lat[p1]);
 
             path.AddLine(x0, y0, x1, y1);
         }
 
+        private void pictureBox1_Paint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            e.Graphics.Clear(Color.FromArgb(50, 50, 50));
 
+            estimateElevation();
+            e.Graphics.DrawImage(bmp, 0, 0);
+            for(int i = 0; i < objs; i++)
+            {
+                /* ????? 436 - 439*/
+                int pts = obj[i].pts; // ???
+                for(int j = 0; j < pts - 1; j++)
+                    drawLine(i, j, j + 1, path);
+                if (obj[i].type != 3) drawLine(i, pts - 1, 0, path);
 
-       
-  
+                switch (obj[i].type)
+                {
+                    case 0:
+                        brush.Color = Color.FromArgb(200, 250, 250);
+                        break;
+                    case 1:
+                        brush.Color = Color.FromArgb(50, 200, 200);
+                        break;
+                    case 2:
+                        brush.Color = Color.FromArgb(50, 100, 50);
+                        break;
+                    case 3:
+                        brush.Color = Color.FromArgb(0, 100, 150);
+                        break;
+                }
+                pen.Color = brush.Color;
+                pen.Width = (float)(obj[i].thick * scale);
+
+                if (obj[i].type != 3) e.Graphics.FillPath(brush, path);
+                else e.Graphics.DrawPath(pen, path);
+
+                if(obj[i].type == 0)
+                {
+                    float tx = (float)lon2x(obj[i].cx);
+                    float ty = (float)lat2y(obj[i].cy);
+
+                    SizeF ts = e.Graphics.MeasureString(obj[i].name, font);
+
+                    brush.Color = Color.FromArgb(250, 250, 250);
+                    e.Graphics.DrawString(obj[i].name, font, brush, tx - ts.Width * 0.5f, ty - ts.Height * 0.5f);
+                }
+
+                path.Reset();
+            }
+
+            for(int i = 0; i < marks; i++)
+            {
+                float mx = (float)lon2x(mark[i].lon);
+                float my = (float)lat2y(mark[i].lat);
+
+                brush.Color = Color.FromArgb(250, 250, 250);
+                e.Graphics.DrawString(mark[i].name, font, brush, mx, my);
+
+                brush.Color = Color.FromArgb(250, 250, 250);
+                e.Graphics.FillEllipse(brush, mx - 5.0f, my - 5.0f, 10.0f, 10.0f);
+            }
+
+            brush.Color = Color.FromArgb(40, 50, 250, 250);
+            pen.Color = Color.FromArgb(100, 50, 250, 250);
+
+            pen.Width = 1;
+
+            for(int i = 0; i< objs; i++)
+            {
+                int pts = obj[i].pts;
+
+                for(int j = 0; j < pts; j++)
+                {
+                    float mx = (float)lon2x(obj[i].lon[j]);
+                    float my = (float)lat2y(obj[i].lat[j]);
+                    e.Graphics.FillEllipse(brush, mx - 5.0f, my - 5.0f, 10.0f, 10.0f);
+                    e.Graphics.DrawEllipse(pen, mx - 5.0f, my - 5.0f, 10.0f, 10.0f);
+                }
+            }
+        }
+
+        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
+        {
+            if(e.Button == MouseButtons.Left)
+            {
+                int dx = e.X - mouse_x;
+                int dy = mouse_y - e.Y;
+
+                if (lock_i == -1 && lock_j == -1)
+                {
+                    offset_x += (double)dx / scale;
+                    offset_y += (double)dy / scale;
+                }
+                else
+                {
+                    obj[lock_i].lon[lock_j] += (double)dx / scale;
+                    obj[lock_i].lat[lock_j] += (double)dy / scale;
+                }
+                pictureBox1.Invalidate();
+            }
+            mouse_x = e.X;
+            mouse_y = e.Y;
+        }
+
+        private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
+        {
+            for(int i = 0; i < objs; i++)
+            {
+                int pts = obj[i].pts;
+                for (int j = 0; j < pts; j++)
+                {
+                    float mx = (float)lon2x(obj[i].lon[j]);
+                    float my = (float)lat2y(obj[i].lat[j]);
+
+                    double dx = mx - e.X;
+                    double dy = my - e.Y;
+                    if (dx * dx + dy * dy >= 5 * 5) continue;
+
+                    lock_i = i;
+                    lock_j = j;
+                }
+            }
+        }
+
+        private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
+        {
+            lock_i = -1;
+            lock_j = -1;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            saveAllObjects();
+        }
     }
 }
