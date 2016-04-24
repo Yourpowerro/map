@@ -284,12 +284,85 @@ namespace Map
             reader.Close();
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        void loadMarkers(string markerfile)
         {
+            StreamReader reader = new StreamReader(markerfile);
 
+            string s_marks = reader.ReadLine();
+            marks = int.Parse(s_marks);
+
+            mark = new mark_data[marks];
+
+            for(int i = 0; i < marks; i++)
+            {
+                string s_info = reader.ReadLine();
+                string[] field = s_info.Split(' ');
+
+                mark[i].lat = double.Parse(field[0]);
+                mark[i].lon = double.Parse(field[1]);
+                mark[i].name = field[2];
+            }
+
+            reader.Close();
         }
 
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            loadMap("../../map.txt");
+            loadMarkers("../../markers.txt");
+            loadElevationSamples("../../height.txt");
 
+            width = pictureBox1.Width;
+            height = pictureBox1.Height;
+
+            bmp = new Bitmap(width, height);
+
+            half_w = (double)width * 0.5;
+            half_h = (double)height * 0.5;
+
+            scale = Math.Min(half_w, half_h) * 100;
+
+            MouseWheel += new MouseEventHandler(Form1_MouseWheel);
+        }
+
+        void Form1_MouseWheel(object sender, MouseEventArgs e)
+        {
+            double new_scale = scale + e.Delta * 0.001 * scale;
+            scale = Math.Min(Math.Max(new_scale, 0.001), 3000000);
+
+            pictureBox1.Invalidate();
+        }
+
+        double lon2x(double lon)
+        {
+            return half_w + (lon + offset_x) * scale;
+        }
+
+        double lat2y(double lat)
+        {
+            return half_h - (lat + offset_y) * scale;
+        }
+
+        double idw (double lat, double lon)
+        {
+            double stop = 0;
+            double sbot = 0;
+
+            for(int i = 0; i < samps; i++)
+            {
+                double dlat = lat - samp[i].lat;
+                double dlon = lon - samp[i].lon;
+
+                double dist = Math.Sqrt(dlat * dlat + dlon * dlon);
+                if (dist < 0.0000000000001) return samp[i].elev;
+
+                double w = 1 / Math.Pow(dist, power);
+
+                stop += w * samp[i].elev;
+                sbot += w;
+            }
+            return stop / sbot;
+        }
 
         void drawLine(int idx, int p0, int p1, GraphicsPath path)
         {
@@ -302,15 +375,7 @@ namespace Map
             path.AddLine(x0, y0, x1, y1);
         }
 
-        double lon2x(double lon)
-        {
-            return half_w + (lon + offset_x) * scale;
-        }
 
-        double lat2y(double lat)
-        {
-            return half_h - (lat + offset_y) * scale;
-        }
 
        
   
