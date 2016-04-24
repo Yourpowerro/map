@@ -176,11 +176,10 @@ namespace Map
             writer.WriteLine(obj[idx].pts.ToString());
 
             for (int i = 0; i < obj[idx].pts; i++)
-            {
                 writer.WriteLine(obj[idx].lat[i].ToString("0.000000000000") + " " + obj[idx].lon[i].ToString("0.000000000000"));
-            }
+
             writer.Close();
-            }
+        }
 
         double unit(double x, double x0, double x1)
         {
@@ -202,6 +201,25 @@ namespace Map
         {
             StreamReader reader = new StreamReader(filename);
 
+            string s_samps = reader.ReadLine();
+            samps = int.Parse(s_samps);
+            samp = new ele_data[samps];
+
+            for(int i = 0; i < samps; i++)
+            {
+                string s_data = reader.ReadLine();
+                string[] field = s_data.Split(' ');
+                double elev = double.Parse(field[0]);
+
+                samp[i].elev = elev;
+                samp[i].lat = double.Parse(field[1]);
+                samp[i].lon = double.Parse(field[2]);
+
+                elev_min = Math.Min(elev_min, elev);
+                elev_max = Math.Max(elev_max, elev);
+            }
+
+            reader.Close();
         }
 
         private void Form1_Load(object sender, EventArgs e)
