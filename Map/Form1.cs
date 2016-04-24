@@ -257,7 +257,32 @@ namespace Map
             return (x - half_w) / scale - offset_x;
         }
 
+        void loadMap(string mapfile)
+        {
+            StreamReader reader = new StreamReader(mapfile);
 
+            string s_objs = reader.ReadLine();
+            objs = int.Parse(s_objs);
+            obj = new obj_data[objs];
+
+            int pts = 0;
+
+            for(int i = 0; i < objs; i++)
+            {
+                string objfile = reader.ReadLine();
+                loadObject(i, "../../" + objfile);
+
+                pts += obj[i].pts;
+            }
+
+            offset_x = -offset_x / (double)pts;
+            offset_y = -offset_y / (double)pts;
+
+            offset_x = -obj[0].cx;
+            offset_y = -obj[0].cy;
+
+            reader.Close();
+        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
