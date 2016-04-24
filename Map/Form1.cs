@@ -222,6 +222,25 @@ namespace Map
             reader.Close();
         }
 
+        void to_color(double t, out double r, out double g, out double b)
+        {
+            if (t < 0.5)
+            {
+                r = map(t, 0.0, 0.5, 0.0, 0.0);
+                g = map(t, 0.0, 0.5, 0.0, 0.5);
+                b = map(t, 0.0, 0.5, 1.0, 1.0);
+            }
+            else
+            {
+                r = map(t, 0.5, 1.0, 0.0, 1.0);
+                g = map(t, 0.5, 1.0, 0.5, 1.0);
+                b = map(t, 0.5, 1.0, 1.0, 1.0);
+            }
+            r = (r - 0.5) * cont + 0.5 + brig;
+            g = (g - 0.5) * cont + 0.5 + brig;
+            b = (b - 0.5) * cont + 0.5 + brig;
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
 
