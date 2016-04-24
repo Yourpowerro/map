@@ -241,6 +241,24 @@ namespace Map
             b = (b - 0.5) * cont + 0.5 + brig;
         }
 
+        void saveAllObjects()
+        {
+            for (int i = 0; i < objs; i++)
+                saveObject(i, obj[i].file);
+        }
+
+        double y2lat(double y)
+        {
+            return (half_h - y) / scale - offset_y;
+        }
+
+        double x2lon(double x)
+        {
+            return (x - half_w) / scale - offset_x;
+        }
+
+
+
         private void Form1_Load(object sender, EventArgs e)
         {
 
