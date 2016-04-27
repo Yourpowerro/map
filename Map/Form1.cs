@@ -14,7 +14,7 @@ namespace Map
 {
     public partial class Form1 : Form
     {
-        double power = 5.0;
+        double power = 1.0;
         double cont = 1.0;
         double brig = 0.0;
 
@@ -85,11 +85,6 @@ namespace Map
 
         public Form1()
         {
-
-       /*     half_w = (double)pictureBox1.Width * 0.5f;
-            half_h = (double)pictureBox1.Height * 0.5f;
-
-            scale = Math.Min(half_h, half_w) * 100.0f; */
             InitializeComponent();
         }
 
@@ -97,7 +92,7 @@ namespace Map
         {
             obj[idx].file = objfile;
             StreamReader reader = new StreamReader(objfile);
-
+            
             string s_type = reader.ReadLine();
             switch (s_type)
             {
@@ -114,27 +109,29 @@ namespace Map
                     obj[idx].type = 3;
                     break;
             }
+            
             obj[idx].name = reader.ReadLine();
+            
             obj[idx].thick = double.Parse(reader.ReadLine());
-
+            
             string s_pts = reader.ReadLine();
             int pts = int.Parse(s_pts);
-
+            
             obj[idx].pts = pts;
             obj[idx].lat = new double[pts];
             obj[idx].lon = new double[pts];
 
             double cx = 0.0;
             double cy = 0.0;
-
+            
             for (int i = 0; i != pts; i++)
-            {
+            {               
                 string s_coords = reader.ReadLine();
                 string[] field = s_coords.Split(' ');
-
-                double lat = double.Parse(field[0]);
-                double lon = double.Parse(field[0]);
-
+                
+                double lat = double.Parse(field[0]);               
+                double lon = double.Parse(field[1]);
+                
                 obj[idx].lat[i] = lat;
                 obj[idx].lon[i] = lon;
 
@@ -144,6 +141,7 @@ namespace Map
                 cx += lon;
                 cy += lat;
             }
+            
             obj[idx].cx = cx / (double)pts;
             obj[idx].cy = cy / (double)pts;
 
@@ -260,21 +258,21 @@ namespace Map
         void loadMap(string mapfile)
         {
             StreamReader reader = new StreamReader(mapfile);
-
+            
             string s_objs = reader.ReadLine();
             objs = int.Parse(s_objs);
             obj = new obj_data[objs];
-
+            
             int pts = 0;
-
-            for(int i = 0; i < objs; i++)
-            {
-                string objfile = reader.ReadLine();
+            
+            for (int i = 0; i < objs; i++)
+            {                
+                string objfile = reader.ReadLine();              
                 loadObject(i, "../../" + objfile);
-
+                
                 pts += obj[i].pts;
             }
-
+            
             offset_x = -offset_x / (double)pts;
             offset_y = -offset_y / (double)pts;
 
@@ -292,13 +290,13 @@ namespace Map
             marks = int.Parse(s_marks);
 
             mark = new mark_data[marks];
-
-            for(int i = 0; i < marks; i++)
+            
+            for (int i = 0; i < marks; i++)
             {
                 string s_info = reader.ReadLine();
                 string[] field = s_info.Split(' ');
 
-                mark[i].lat = double.Parse(field[0]);
+                mark[i].lat = double.Parse(field[0]);           
                 mark[i].lon = double.Parse(field[1]);
                 mark[i].name = field[2];
             }
@@ -307,11 +305,11 @@ namespace Map
         }
 
         private void Form1_Load(object sender, EventArgs e)
-        {
-            loadMap("../../map.txt");
+        {           
+            loadMap("../../map.txt");           
             loadMarkers("../../markers.txt");
             loadElevationSamples("../../height.txt");
-
+            
             width = pictureBox1.Width;
             height = pictureBox1.Height;
 
@@ -366,7 +364,7 @@ namespace Map
 
         void estimateElevation()
         {
-            for(int y = 0; y < height; y++)
+            for (int y = 0; y < height; y++)
                 for(int x = 0; x < width; x++)
                 {
                     double lat = y2lat(y);
@@ -385,7 +383,7 @@ namespace Map
                     r = Math.Min(Math.Max(r, 0), 255);
                     g = Math.Min(Math.Max(g, 0), 255);
                     b = Math.Min(Math.Max(b, 0), 255);
-
+                    
                     bmp.SetPixel(x, y, Color.FromArgb(r, g, b));
                 }
         }
@@ -405,15 +403,18 @@ namespace Map
         {
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             e.Graphics.Clear(Color.FromArgb(50, 50, 50));
-
+            
             estimateElevation();
+            
             e.Graphics.DrawImage(bmp, 0, 0);
-            for(int i = 0; i < objs; i++)
+
+            for (int i = 0; i < objs; i++)
             {
-                /* ????? 436 - 439*/
-                int pts = obj[i].pts; // ???
-                for(int j = 0; j < pts - 1; j++)
+                int pts = obj[i].pts;
+                
+                for (int j = 0; j < pts - 1; j++)
                     drawLine(i, j, j + 1, path);
+                
                 if (obj[i].type != 3) drawLine(i, pts - 1, 0, path);
 
                 switch (obj[i].type)
@@ -447,11 +448,11 @@ namespace Map
                     brush.Color = Color.FromArgb(250, 250, 250);
                     e.Graphics.DrawString(obj[i].name, font, brush, tx - ts.Width * 0.5f, ty - ts.Height * 0.5f);
                 }
-
+                
                 path.Reset();
             }
 
-            for(int i = 0; i < marks; i++)
+            for (int i = 0; i < marks; i++)
             {
                 float mx = (float)lon2x(mark[i].lon);
                 float my = (float)lat2y(mark[i].lat);
