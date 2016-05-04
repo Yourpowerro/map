@@ -1,0 +1,45 @@
+script/sandbox-google-maps-find-altitude.js
+
+function ftn_makecsv()
+{
+	var int=0;
+	document.getElementById("ta_csvoutput").style.display="block";
+	document.getElementById("ta_csvoutput").value="";
+	
+	output="";
+	if (document.getElementById("cb_output_latlng").checked)
+	{
+		output+=routeMarkers.length;
+	}
+	if (document.getElementById("cb_output_meters").checked)
+	{
+		output+="";
+	}
+	if (document.getElementById("cb_output_feet").checked)
+	{
+		output+=",feet";
+	}
+	output+="\n";
+		
+		
+	for (i in routeMarkers) 
+	{
+		output+="";
+		if (document.getElementById("cb_output_meters").checked)
+		{
+			output+=output_m[int];
+		}
+		if (document.getElementById("cb_output_latlng").checked)
+		{
+			output+=" "+output_lat[int]+" "+output_lng[int];
+		}
+		if (document.getElementById("cb_output_feet").checked)
+		{
+			output+=" "+output_f[int];
+		}
+		output+="\n";
+		int=int+1;
+	}
+	output=output.replace(/\./g,",");
+	document.getElementById("ta_csvoutput").value=output;
+}
