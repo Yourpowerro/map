@@ -15,7 +15,7 @@ namespace Map
     public partial class Form1 : Form
     {
         double power = 1.0;
-        double cont = 1.0;
+        double cont = 1.5;
         double brig = 0.0;
 
         Bitmap bmp;
@@ -111,7 +111,9 @@ namespace Map
             }
             
             obj[idx].name = reader.ReadLine();
-            
+
+            if (s_type == "building") reader.ReadLine();
+
             obj[idx].thick = double.Parse(reader.ReadLine());
             
             string s_pts = reader.ReadLine();
@@ -461,7 +463,7 @@ namespace Map
                 e.Graphics.DrawString(mark[i].name, font, brush, mx, my);
 
                 brush.Color = Color.FromArgb(250, 250, 250);
-                e.Graphics.FillEllipse(brush, mx - 5.0f, my - 5.0f, 10.0f, 10.0f);
+                e.Graphics.FillEllipse(brush, mx - 5.0f, my - 5.0f, 8.0f, 8.0f);
             }
 
             brush.Color = Color.FromArgb(40, 50, 250, 250);
@@ -477,8 +479,8 @@ namespace Map
                 {
                     float mx = (float)lon2x(obj[i].lon[j]);
                     float my = (float)lat2y(obj[i].lat[j]);
-                    e.Graphics.FillEllipse(brush, mx - 5.0f, my - 5.0f, 10.0f, 10.0f);
-                    e.Graphics.DrawEllipse(pen, mx - 5.0f, my - 5.0f, 10.0f, 10.0f);
+                    e.Graphics.FillEllipse(brush, mx - 5.0f, my - 5.0f, 8.0f, 8.0f);
+                    e.Graphics.DrawEllipse(pen, mx - 5.0f, my - 5.0f, 8.0f, 8.0f);
                 }
             }
         }
@@ -535,6 +537,27 @@ namespace Map
         private void button1_Click(object sender, EventArgs e)
         {
             saveAllObjects();
+        }
+
+        private void trackBar1_Scroll(object sender, EventArgs e)
+        {
+            power = trackBar1.Value;
+            label1.Text = "Power: " + power;
+            pictureBox1.Invalidate();
+        }
+
+        private void trackBar2_Scroll(object sender, EventArgs e)
+        {
+            cont = (double)trackBar2.Value/1000;
+            label2.Text = "Cont: " + cont;
+            pictureBox1.Invalidate();
+        }
+
+        private void trackBar3_Scroll(object sender, EventArgs e)
+        {
+            brig = (double)trackBar3.Value / 100;
+            label3.Text = "Brig: " + brig;
+            pictureBox1.Invalidate();
         }
     }
 }
